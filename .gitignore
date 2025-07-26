@@ -1,3 +1,40 @@
-venv/ 
-__pycache__/ 
-config/.env 
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic cache
+alembic.ini
+
+# PostgreSQL local data (if any)
+*.pgsql
+*.sql
+
+# Node / React / Next.js
+node_modules/
+.next/
+dist/
+out/
+coverage/
+.env.local
+.env.production
+.env.development
+
+# IDE configs
+.vscode/
+.idea/
