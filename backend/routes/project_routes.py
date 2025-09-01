@@ -89,7 +89,7 @@ async def get_all_projects(
     current: CurrentUserContext = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if current.role != "external":
+    if current.role not in ("external","hr"):
         raise HTTPException(status_code=403, detail="Not authorized")
 
     return db.query(Project).all()

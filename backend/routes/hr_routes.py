@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import date
+from fastapi import Response, status
+from sqlalchemy.exc import IntegrityError
 
 from backend import get_current_user, check_permission, CurrentUserContext, hash_password
 from backend.database import get_db
 from backend.database.models import Project, ExternalRequest, Employee, Role
+from sqlalchemy import text
 
 router = APIRouter(prefix="/hr", tags=["HR"])
 
@@ -128,17 +131,46 @@ async def update_employee(
     db.refresh(employee)
     return employee
 
-@router.delete("/employees/{employee_id}")
+@router.delete("/employees/{employee_id}", status_code=204)
 async def delete_employee(
     employee_id: int,
     db: Session = Depends(get_db),
-    current: CurrentUserContext = Depends(get_current_user)
+    current: CurrentUserContext = Depends(get_current_user),
 ):
     check_permission(current, "delete_employee")
-    employee = db.query(Employee).filter(Employee.personId == employee_id).first()
-    if not employee:
+
+    emp = db.get(Employee, employee_id) or db.query(Employee).filter(Employee.personId == employee_id).first()
+    if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
 
-    db.delete(employee)
-    db.commit()
-    return {"message": "Employee deleted successfully"}
+    try:
+        if hasattr(emp, "roles") and emp.roles is not None:
+            emp.roles.clear()
+        if hasattr(emp, "projects") and emp.projects is not None:
+            emp.projects.clear()
+        if hasattr(emp, "teams") and emp.teams is not None:
+            emp.teams.clear()
+
+        if hasattr(emp, "addresses") and emp.addresses is not None:
+            for it in list(emp.addresses):
+                db.delete(it)
+        if hasattr(emp, "contracts") and emp.contracts is not None:
+            for it in list(emp.contracts):
+                db.delete(it)
+        if hasattr(emp, "hr_employee") and emp.hr_employee is not None:
+            db.delete(emp.hr_employee)
+
+        db.commit()  
+        fresh = db.get(Employee, employee_id) or db.query(Employee).filter(Employee.personId == employee_id).first()
+        if fresh:
+            if hasattr(fresh, "id"):
+                db.query(Employee).filter(Employee.id == fresh.id).delete(synchronize_session=False)
+            else:
+                db.query(Employee).filter(Employee.personId == fresh.personId).delete(synchronize_session=False)
+            db.commit()
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Delete blocked by FK constraints")
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

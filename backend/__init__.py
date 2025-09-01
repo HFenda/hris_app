@@ -99,7 +99,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             "view_all_projects": True,
             "create_project": True,
             "edit_project": True,
-            "delete_project": True
+            "delete_project": True,
+            "view_all_projects": True
         }
     elif isinstance(user, ExternalUser):
         permissions = {
