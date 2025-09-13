@@ -2,7 +2,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-# Replace with your actual credentials
 DATABASE_URL = "postgresql://postgres:harun@localhost/hris_db"
 
 # Create engine

@@ -12,7 +12,7 @@ from typing import Any
 app = FastAPI()
 
 # === JWT Configuration ===
-SECRET_KEY = "your-secret-key"  # Replace with a secure key
+SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -100,7 +100,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             "create_project": True,
             "edit_project": True,
             "delete_project": True,
-            "view_all_projects": True
         }
     elif isinstance(user, ExternalUser):
         permissions = {
